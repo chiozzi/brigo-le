@@ -28,7 +28,7 @@
     const [senhaDigitada, setSenhaDigitada] = useState('');
 
     const verificarSenha = () => {
-      const senhaCorreta = '12345';
+      const senhaCorreta = '140706';
       if (senhaDigitada === senhaCorreta) {
         setAdminModalVisible(false);
         setSenhaDigitada('');
