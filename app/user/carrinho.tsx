@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { CarrinhoContext } from '../context/carrinhoContext';
 import { ItemCarrinho } from '../types';
+import { enviarPedido, Pedido } from '../services/enviarPedido';
 
 export default function Carrinho() {
   const {
@@ -25,9 +26,7 @@ export default function Carrinho() {
   const confirmarLimpar = () => {
     if (Platform.OS === 'web') {
       const confirmar = window.confirm('Deseja limpar o carrinho?');
-      if (confirmar) {
-        limparCarrinho();
-      }
+      if (confirmar) limparCarrinho();
     } else {
       Alert.alert(
         'Confirmar',
@@ -41,23 +40,43 @@ export default function Carrinho() {
   };
 
   const confirmarRemover = (id: number, nome: string) => {
-  if (Platform.OS === 'web') {
-    const confirmar = window.confirm(`Remover "${nome}" do carrinho?`);
-    if (confirmar) {
-      removerDoCarrinho(id);
+    if (Platform.OS === 'web') {
+      const confirmar = window.confirm(`Remover "${nome}" do carrinho?`);
+      if (confirmar) removerDoCarrinho(id);
+    } else {
+      Alert.alert(
+        'Confirmar remoção',
+        `Deseja remover "${nome}" do carrinho?`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Remover', onPress: () => removerDoCarrinho(id), style: 'destructive' },
+        ]
+      );
     }
-  } else {
-    Alert.alert(
-      'Confirmar remoção',
-      `Deseja remover "${nome}" do carrinho?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Remover', onPress: () => removerDoCarrinho(id), style: 'destructive' },
-      ]
-    );
-  }
-};
+  };
 
+  const finalizarPedido = async () => {
+    if (carrinho.length === 0) {
+      alert('Seu carrinho está vazio.');
+      return;
+    }
+
+    const pedido: Pedido = {
+      nomeCliente: 'Letícia',  // Você pode substituir por input depois
+      telefone: '11999999999', // Também pode ser input
+      itens: carrinho,
+      total,
+    };
+
+    try {
+      await enviarPedido(pedido);
+      alert('Pedido enviado com sucesso!');
+      limparCarrinho();
+    } catch (error) {
+      alert('Erro ao enviar pedido. Tente novamente.');
+      console.error(error);
+    }
+  };
 
   const renderItem: ListRenderItem<ItemCarrinho> = ({ item }) => (
     <View style={styles.item}>
@@ -79,7 +98,6 @@ export default function Carrinho() {
         >
           <Text style={styles.botaoTexto}>Remover</Text>
         </TouchableOpacity>
-
       </View>
     </View>
   );
@@ -103,6 +121,13 @@ export default function Carrinho() {
 
           <TouchableOpacity style={styles.limparBotao} onPress={confirmarLimpar}>
             <Text style={styles.limparTexto}>Limpar Carrinho</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.limparBotao, { backgroundColor: '#28a745', marginTop: 10 }]}
+            onPress={finalizarPedido}
+          >
+            <Text style={styles.limparTexto}>Finalizar Pedido</Text>
           </TouchableOpacity>
         </>
       )}

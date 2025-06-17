@@ -74,11 +74,11 @@ export default function UserLayout() {
         }}
       />
       <Tabs.Screen
-        name="contato"
+        name="pedidos"
         options={{
-          title: 'Contato',
+          title: 'Pedidos',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="phone" size={size + 5} color={color} />
+            <FontAwesome name="file-text" size={size + 5} color={color} />
           ),
         }}
       />
