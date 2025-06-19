@@ -36,9 +36,13 @@ export default function Home() {
         <TouchableOpacity style={styles.navButton} onPress={() => router.push('/user/sobre')}>
           <Text style={styles.navButtonText}>📖 Sobre a Marca</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton} onPress={() => router.push('/user/contato')}>
-          <Text style={styles.navButtonText}>📞 Contato / Encomendas</Text>
+        <TouchableOpacity style={styles.navButton} onPress={() => router.push('/user/pedidos')}>
+          <Text style={styles.navButtonText}>📝 Pedidos</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.navButton} onPress={() => router.push('/user/clientesInfo')}>
+          <Text style={styles.navButtonText}>📋 Fazer Pedido</Text>
+        </TouchableOpacity>
+
       </View>
 
       {/* Sabores Populares */}

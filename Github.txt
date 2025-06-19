@@ -1,0 +1,62 @@
+PROVA
+
+6- Github
+
+CLONAR REPOSITORIO:
+git clone URL DO REP.
+cd nome do repositório
+code .
+
+MANDAR PARA O GITHUB:
+Crie um repositório e não adicione o read.me
+
+git init
+git add .
+git commit -m "Primeiro commit"
+git remote add origin LINK
+git branch -M main
+git push -u origin main
+
+CONFIGURAR USUARIO GLOBAL:
+
+git config --global user.name
+git config --global user.email
+
+CONFIGURAR USUARIO DESSE REPOSITORIO APENAS:
+
+git config --local user.name
+git config --local user.email
+
+DELETAR COMMITS:
+
+git reset --soft HEAD~1
+
+
+DELETAR SE EU COLOQUEI O LINK ERRADO:
+git remote remove origin
+
+
+
+
+
+SUBIR PROJETO PELA PRIMEIRA VEZ NO REPOSITORIO
+(no terminal cmd)
+git init
+git remote add origin LINK
+git add .
+git commit -m "Primeiro commit"
+git branch -M main
+git push -u origin main
+
+
+
+ATUALIZAR PROJETO NO REPOSITORIO
+(atualizar tudo e no final, abra o terminal cmd)
+git add .
+git commit -m "atualização"
+git push origin main
+
+
+
+
+

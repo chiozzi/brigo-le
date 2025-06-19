@@ -1,171 +1,99 @@
-import React, { useContext } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Platform,
-  ListRenderItem,
-} from 'react-native';
-import { CarrinhoContext } from '../context/carrinhoContext';
-import { ItemCarrinho } from '../types';
-import { enviarPedido, Pedido } from '../services/enviarPedido';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 
-export default function Carrinho() {
-  const {
-    carrinho,
-    aumentarQuantidade,
-    diminuirQuantidade,
-    removerDoCarrinho,
-    limparCarrinho,
-    total,
-  } = useContext(CarrinhoContext);
+export default function InformacoesCliente() {
+  const router = useRouter();
 
-  const confirmarLimpar = () => {
-    if (Platform.OS === 'web') {
-      const confirmar = window.confirm('Deseja limpar o carrinho?');
-      if (confirmar) limparCarrinho();
-    } else {
-      Alert.alert(
-        'Confirmar',
-        'Deseja limpar o carrinho?',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Limpar', onPress: limparCarrinho, style: 'destructive' },
-        ]
-      );
-    }
+  const [nome, setNome] = useState('');
+  const [telefone, setTelefone] = useState('');
+
+  const validarTelefone = (tel: string) => {
+    // Exemplo simples: verificar se tem só números e 10 ou 11 dígitos
+    const regex = /^\d{10,11}$/;
+    return regex.test(tel);
   };
 
-  const confirmarRemover = (id: number, nome: string) => {
-    if (Platform.OS === 'web') {
-      const confirmar = window.confirm(`Remover "${nome}" do carrinho?`);
-      if (confirmar) removerDoCarrinho(id);
-    } else {
-      Alert.alert(
-        'Confirmar remoção',
-        `Deseja remover "${nome}" do carrinho?`,
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Remover', onPress: () => removerDoCarrinho(id), style: 'destructive' },
-        ]
-      );
-    }
-  };
-
-  const finalizarPedido = async () => {
-    if (carrinho.length === 0) {
-      alert('Seu carrinho está vazio.');
+  const enviarDados = () => {
+    if (!nome.trim() || !telefone.trim()) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
 
-    const pedido: Pedido = {
-      nomeCliente: 'Letícia',  // Você pode substituir por input depois
-      telefone: '11999999999', // Também pode ser input
-      itens: carrinho,
-      total,
-    };
-
-    try {
-      await enviarPedido(pedido);
-      alert('Pedido enviado com sucesso!');
-      limparCarrinho();
-    } catch (error) {
-      alert('Erro ao enviar pedido. Tente novamente.');
-      console.error(error);
+    if (!validarTelefone(telefone)) {
+      Alert.alert('Erro', 'Telefone inválido. Digite apenas números, com 10 ou 11 dígitos.');
+      return;
     }
+
+    // Navega para o carrinho passando nome e telefone como params na query
+    router.push({
+      pathname: '/user/carrinho',
+      params: { nome, telefone },
+    });
   };
 
-  const renderItem: ListRenderItem<ItemCarrinho> = ({ item }) => (
-    <View style={styles.item}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.nome}>{item.nome}</Text>
-        <Text>Preço: R$ {item.preco.toFixed(2)}</Text>
-        <Text>Quantidade: {item.quantidade}</Text>
-      </View>
-      <View style={styles.botoes}>
-        <TouchableOpacity style={styles.botao} onPress={() => aumentarQuantidade(item.id)}>
-          <Text style={styles.botaoTexto}>+</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.botao} onPress={() => diminuirQuantidade(item.id)}>
-          <Text style={styles.botaoTexto}>-</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.botao, { backgroundColor: '#ff4444' }]}
-          onPress={() => confirmarRemover(item.id, item.nome)}
-        >
-          <Text style={styles.botaoTexto}>Remover</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Carrinho</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <Text style={styles.titulo}>Informações do Cliente</Text>
 
-      {carrinho.length === 0 ? (
-        <Text style={styles.vazio}>Seu carrinho está vazio.</Text>
-      ) : (
-        <>
-          <FlatList
-            data={carrinho}
-            keyExtractor={item => item.id.toString()}
-            renderItem={renderItem}
-            contentContainerStyle={{ paddingBottom: 20 }}
-          />
+      <TextInput
+        style={styles.input}
+        placeholder="Nome completo"
+        value={nome}
+        onChangeText={setNome}
+        autoCapitalize="words"
+      />
 
-          <Text style={styles.total}>Total: R$ {total.toFixed(2)}</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Telefone (somente números)"
+        value={telefone}
+        onChangeText={setTelefone}
+        keyboardType="phone-pad"
+        maxLength={11}
+      />
 
-          <TouchableOpacity style={styles.limparBotao} onPress={confirmarLimpar}>
-            <Text style={styles.limparTexto}>Limpar Carrinho</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.limparBotao, { backgroundColor: '#28a745', marginTop: 10 }]}
-            onPress={finalizarPedido}
-          >
-            <Text style={styles.limparTexto}>Finalizar Pedido</Text>
-          </TouchableOpacity>
-        </>
-      )}
-    </View>
+      <TouchableOpacity style={styles.botao} onPress={enviarDados}>
+        <Text style={styles.botaoTexto}>Continuar</Text>
+      </TouchableOpacity>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  titulo: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  vazio: { fontSize: 16, textAlign: 'center', marginTop: 50, color: '#666' },
-  item: {
-    flexDirection: 'row',
-    backgroundColor: '#f8f8f8',
-    borderRadius: 10,
-    padding: 10,
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
     marginBottom: 15,
-    elevation: 2,
   },
-  nome: { fontSize: 18, fontWeight: 'bold' },
-  botoes: { justifyContent: 'space-between', alignItems: 'center' },
   botao: {
-    backgroundColor: '#ff375b',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    marginVertical: 3,
-    minWidth: 70,
-    alignItems: 'center',
-  },
-  botaoTexto: { color: '#fff', fontWeight: 'bold' },
-  total: { fontSize: 20, fontWeight: 'bold', textAlign: 'right', marginTop: 10 },
-  limparBotao: {
-    marginTop: 15,
-    backgroundColor: '#ff4444',
-    paddingVertical: 12,
+    backgroundColor: '#28a745',
+    paddingVertical: 15,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 10,
   },
-  limparTexto: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  botaoTexto: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
