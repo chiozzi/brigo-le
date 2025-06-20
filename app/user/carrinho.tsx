@@ -1,15 +1,17 @@
 import React, { useContext, useState } from 'react';
 import {
-  View,
-  Text,
   FlatList,
-  TouchableOpacity,
   Modal,
   Pressable,
   StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { CarrinhoContext } from '../context/carrinhoContext';
-import { useLocalSearchParams } from 'expo-router';
+import { ClienteContext } from '../context/clienteContext';
+import { enviarPedido } from '../services/enviarPedido';
 import { ItemCarrinho } from '../types';
 
 export default function Carrinho() {
@@ -22,15 +24,28 @@ export default function Carrinho() {
     limparCarrinho,
   } = useContext(CarrinhoContext);
 
-  const { nome, telefone } = useLocalSearchParams();
+  const { cliente } = useContext(ClienteContext);
 
-  const [modalFinalizarVisible, setModalFinalizarVisible] = useState(false);
-  const [itemParaRemover, setItemParaRemover] = useState<ItemCarrinho | null>(null);
+  const router = useRouter();
 
-  const confirmarFinalizacao = () => {
-    setModalFinalizarVisible(false);
-    limparCarrinho();
-    alert('Pedido enviado com sucesso! 💖');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalExcluirVisible, setModalExcluirVisible] = useState(false);
+  const [modalConfirmarCliente, setModalConfirmarCliente] = useState(false);
+  const [itemParaExcluir, setItemParaExcluir] = useState<ItemCarrinho | null>(null);
+
+  const handleFinalizarPedido = async () => {
+    try {
+      await enviarPedido({
+        nomeCliente: cliente.nome,
+        telefone: cliente.telefone,
+        itens: carrinho,
+        total,
+      });
+      limparCarrinho();
+      setModalVisible(true);
+    } catch (error) {
+      console.error('Erro ao enviar pedido:', error);
+    }
   };
 
   const renderItem = ({ item }: { item: ItemCarrinho }) => (
@@ -45,14 +60,23 @@ export default function Carrinho() {
         </Text>
       </View>
       <View style={styles.botoes}>
-        <TouchableOpacity onPress={() => diminuirQuantidade(item.id)} style={styles.botao}>
+        <TouchableOpacity
+          onPress={() => diminuirQuantidade(item.id)}
+          style={styles.botao}
+        >
           <Text style={styles.botaoTexto}>−</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => aumentarQuantidade(item.id)} style={styles.botao}>
+        <TouchableOpacity
+          onPress={() => aumentarQuantidade(item.id)}
+          style={styles.botao}
+        >
           <Text style={styles.botaoTexto}>＋</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => setItemParaRemover(item)}
+          onPress={() => {
+            setItemParaExcluir(item);
+            setModalExcluirVisible(true);
+          }}
           style={[styles.botao, styles.remover]}
         >
           <Text style={styles.botaoTexto}>🗑️</Text>
@@ -65,10 +89,10 @@ export default function Carrinho() {
     <View style={styles.container}>
       <Text style={styles.titulo}>Seu Carrinho</Text>
 
-      {nome && telefone && (
+      {cliente.nome && cliente.telefone && (
         <View style={styles.clienteInfo}>
-          <Text style={styles.clienteTexto}>👤 {nome}</Text>
-          <Text style={styles.clienteTexto}>📞 {telefone}</Text>
+          <Text style={styles.clienteTexto}>👤 {cliente.nome}</Text>
+          <Text style={styles.clienteTexto}>📞 {cliente.telefone}</Text>
         </View>
       )}
 
@@ -87,31 +111,39 @@ export default function Carrinho() {
           <Text style={styles.totalTexto}>Total: R$ {total.toFixed(2)}</Text>
           <TouchableOpacity
             style={styles.botaoFinalizar}
-            onPress={() => setModalFinalizarVisible(true)}
+            onPress={() => setModalConfirmarCliente(true)}
           >
             <Text style={styles.finalizarTexto}>Finalizar Pedido</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Modal de Finalização */}
-      <Modal transparent visible={modalFinalizarVisible} animationType="fade">
+      {/* Modal: Confirmação dos dados do cliente */}
+      <Modal transparent visible={modalConfirmarCliente} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Finalizar Pedido</Text>
-            <Text style={styles.modalMensagem}>
-              Deseja realmente finalizar o pedido?
-            </Text>
-            <View style={styles.modalButtons}>
+            <Text style={styles.modalTitle}>Confirmar seus dados</Text>
+            <View style={styles.modalMensagem}>
+              <Text style={styles.modalLinha}>👤 Nome: {cliente.nome}</Text>
+              <Text style={styles.modalLinha}>📞 Telefone: {cliente.telefone}</Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 10 }}>
               <Pressable
-                style={styles.modalBtn}
-                onPress={() => setModalFinalizarVisible(false)}
+                style={[styles.modalBtn, { backgroundColor: '#ccc' }]}
+                onPress={() => {
+                  setModalConfirmarCliente(false);
+                  router.push('/user/perfil'); // 👈 ajuste aqui se sua tela tiver outro nome
+                }}
               >
-                <Text style={styles.textobotao}>Cancelar</Text>
+                <Text style={[styles.textobotao, { color: '#333' }]}>Editar</Text>
               </Pressable>
               <Pressable
                 style={styles.modalBtn}
-                onPress={confirmarFinalizacao}
+                onPress={async () => {
+                  setModalConfirmarCliente(false);
+                  await handleFinalizarPedido();
+                }}
               >
                 <Text style={styles.textobotao}>Confirmar</Text>
               </Pressable>
@@ -120,28 +152,49 @@ export default function Carrinho() {
         </View>
       </Modal>
 
-      {/* Modal de Remoção */}
-      <Modal transparent visible={!!itemParaRemover} animationType="fade">
+      {/* Modal: Pedido enviado */}
+      <Modal transparent visible={modalVisible} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Remover Item</Text>
+            <Text style={styles.modalTitle}>Pedido enviado!</Text>
             <Text style={styles.modalMensagem}>
-              Deseja remover "{itemParaRemover?.nome}" do carrinho?
+              Seu pedido foi enviado com sucesso. Em breve entraremos em contato.
             </Text>
-            <View style={styles.modalButtons}>
+            <Pressable
+              style={styles.modalBtn}
+              onPress={() => {
+                setModalVisible(false);
+                router.replace('/user/cardapio'); // 👈 ajuste aqui se sua tela tiver outro nome
+              }}
+            >
+              <Text style={styles.textobotao}>Voltar para o cardápio</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal: Confirmação para excluir item */}
+      <Modal transparent visible={modalExcluirVisible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Remover item</Text>
+            <Text style={styles.modalMensagem}>
+              Tem certeza que deseja remover "{itemParaExcluir?.nome}" do carrinho?
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
               <Pressable
-                style={styles.modalBtn}
-                onPress={() => setItemParaRemover(null)}
+                style={[styles.modalBtn, { backgroundColor: '#ccc' }]}
+                onPress={() => setModalExcluirVisible(false)}
               >
-                <Text style={styles.textobotao}>Cancelar</Text>
+                <Text style={[styles.textobotao, { color: '#333' }]}>Cancelar</Text>
               </Pressable>
               <Pressable
                 style={styles.modalBtn}
                 onPress={() => {
-                  if (itemParaRemover) {
-                    removerDoCarrinho(itemParaRemover.id);
-                    setItemParaRemover(null);
+                  if (itemParaExcluir) {
+                    removerDoCarrinho(itemParaExcluir.id);
                   }
+                  setModalExcluirVisible(false);
                 }}
               >
                 <Text style={styles.textobotao}>Remover</Text>
@@ -161,11 +214,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-    fontFamily: 'Comfortaa',
-    color: '#ff375b',
   },
   clienteInfo: { marginBottom: 20 },
-  clienteTexto: { fontSize: 16, color: '#333', fontFamily: 'Comfortaa' },
+  clienteTexto: { fontSize: 16, color: '#333' },
   itemContainer: {
     borderWidth: 1,
     borderColor: '#eee',
@@ -175,9 +226,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fdfdfd',
   },
   itemInfo: { marginBottom: 10 },
-  nome: { fontSize: 16, fontWeight: 'bold', fontFamily: 'Comfortaa' },
-  preco: { fontSize: 14, color: '#555', fontFamily: 'Comfortaa' },
-  subtotal: { fontSize: 14, color: '#000', fontFamily: 'Comfortaa' },
+  nome: { fontSize: 16, fontWeight: 'bold' },
+  preco: { fontSize: 14, color: '#555' },
+  subtotal: { fontSize: 14, color: '#000' },
   botoes: {
     flexDirection: 'row',
     gap: 10,
@@ -206,7 +257,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
-    fontFamily: 'Comfortaa',
   },
   botaoFinalizar: {
     backgroundColor: '#fff',
@@ -214,19 +264,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     borderRadius: 10,
   },
-  finalizarTexto: {
-    color: '#ff375b',
-    fontWeight: 'bold',
-    fontSize: 16,
-    fontFamily: 'Comfortaa',
-  },
-  vazio: {
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 16,
-    color: '#888',
-    fontFamily: 'Comfortaa',
-  },
+  finalizarTexto: { color: '#ff375b', fontWeight: 'bold', fontSize: 16 },
+  vazio: { textAlign: 'center', marginTop: 50, fontSize: 16, color: '#888' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -243,33 +282,30 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontFamily: 'Comfortaa',
-    marginBottom: 10,
-    color: '#ff375b',
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
   },
   modalMensagem: {
-    fontFamily: 'Comfortaa',
-    textAlign: 'center',
     marginBottom: 20,
-    fontSize: 15,
-    color: '#333',
   },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+  modalLinha: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 5,
+    color: '#444',
   },
+
   modalBtn: {
-    flex: 1,
     backgroundColor: '#ff375b',
-    marginHorizontal: 5,
     padding: 10,
     borderRadius: 10,
+    width: '48%',
     alignItems: 'center',
   },
   textobotao: {
     color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
-    fontFamily: 'Comfortaa',
   },
 });

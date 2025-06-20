@@ -1,16 +1,16 @@
 import { Tabs, router } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { Platform, Pressable } from 'react-native';
 
 export default function UserLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarShowLabel: false,               // Remove os nomes das abas
-        tabBarActiveTintColor: '#ff375b',     // rosa forte
-        tabBarInactiveTintColor: '#482b1a',   // rosa fraco
+        tabBarShowLabel: false,
+        tabBarActiveTintColor: '#ff375b',
+        tabBarInactiveTintColor: '#482b1a',
         tabBarStyle: {
-          backgroundColor: '#ffc1d5',         // marrom forte
+          backgroundColor: '#ffc1d5',
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
           height: Platform.OS === 'ios' ? 85 : 65,
@@ -23,14 +23,14 @@ export default function UserLayout() {
           elevation: 12,
         },
         headerStyle: {
-          backgroundColor: '#ffc1d5',         // marrom fraco no header
+          backgroundColor: '#ffc1d5',
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 3 },
           shadowOpacity: 0.3,
           shadowRadius: 6,
           elevation: 6,
         },
-        headerTintColor: '#7c3f27',            // rosa fraco no texto do header
+        headerTintColor: '#7c3f27',
         headerTitleStyle: {
           fontFamily: 'Lobster',
           fontWeight: 'normal',
@@ -41,7 +41,7 @@ export default function UserLayout() {
             onPress={() => router.back()}
             style={{ paddingHorizontal: 15 }}
           >
-            <FontAwesome name="arrow-left" size={24} color="#7c3f27" />
+            <FontAwesome5 name="arrow-left" size={24} color="#7c3f27" />
           </Pressable>
         ),
       }}
@@ -51,7 +51,7 @@ export default function UserLayout() {
         options={{
           title: 'Página Inicial',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="home" size={size + 5} color={color} />
+            <FontAwesome5 name="home" size={size + 2} color={color} />
           ),
         }}
       />
@@ -60,7 +60,7 @@ export default function UserLayout() {
         options={{
           title: 'Cardápio',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="list" size={size + 5} color={color} />
+            <FontAwesome5 name="utensils" size={size + 2} color={color} />
           ),
         }}
       />
@@ -69,7 +69,7 @@ export default function UserLayout() {
         options={{
           title: 'Carrinho',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="shopping-cart" size={size + 5} color={color} />
+            <FontAwesome5 name="shopping-basket" size={size + 2} color={color} />
           ),
         }}
       />
@@ -78,7 +78,7 @@ export default function UserLayout() {
         options={{
           title: 'Pedidos',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="file-text" size={size + 5} color={color} />
+            <FontAwesome5 name="clipboard-list" size={size + 2} color={color} />
           ),
         }}
       />
@@ -87,7 +87,16 @@ export default function UserLayout() {
         options={{
           title: 'Sobre',
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="info-circle" size={size + 5} color={color} />
+            <FontAwesome5 name="info" size={size + 2} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="perfil"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome5 name="user-circle" size={size + 2} color={color} />
           ),
         }}
       />
