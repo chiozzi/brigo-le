@@ -6,10 +6,10 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Platform,
 } from 'react-native';
 import { CarrinhoContext } from '../context/carrinhoContext';
 import { Produto } from '../types';
+import { useRouter } from 'expo-router';
 
 const brigadeiros: Produto[] = [
   {
@@ -17,99 +17,97 @@ const brigadeiros: Produto[] = [
     nome: 'Brigadeiro Ao Leite',
     preco: 3.5,
     descricao: 'Delicioso brigadeiro tradicional',
-    imagem: require ('../../assets/images/sabores/1.png'),
+    imagem: require('../../assets/images/sabores/1.png'),
   },
   {
     id: 2,
     nome: 'Brigadeiro Ao Leite com Morango',
     preco: 3.5,
     descricao: 'Delicioso brigadeiro tradicional',
-    imagem: require ('../../assets/images/sabores/2.png'),
+    imagem: require('../../assets/images/sabores/2.png'),
   },
   {
     id: 3,
     nome: 'Brigadeiro Branco',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/3.png'),
+    imagem: require('../../assets/images/sabores/3.png'),
   },
   {
     id: 4,
     nome: 'Brigadeiro Branco com Morango',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/4.png'),
+    imagem: require('../../assets/images/sabores/4.png'),
   },
   {
     id: 5,
     nome: 'Brigadeiro de Churros ',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/5.png'),
+    imagem: require('../../assets/images/sabores/5.png'),
   },
   {
     id: 6,
     nome: 'Brigadeiro de Coco ',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/6.png'),
+    imagem: require('../../assets/images/sabores/6.png'),
   },
   {
     id: 7,
     nome: 'Brigadeiro Meio Amargo ',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/7.png'),
+    imagem: require('../../assets/images/sabores/7.png'),
   },
   {
     id: 8,
     nome: 'Brigadeiro de Morango',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/8.png'),
+    imagem: require('../../assets/images/sabores/8.png'),
   },
   {
     id: 9,
     nome: 'Brigadeiro de Ninho',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/9.png'),
+    imagem: require('../../assets/images/sabores/9.png'),
   },
   {
     id: 10,
     nome: 'Brigadeiro de Ninho com Nutella',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/10.png'),
+    imagem: require('../../assets/images/sabores/10.png'),
   },
   {
     id: 11,
     nome: 'Brigadeiro de Oreo',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/11.png'),
+    imagem: require('../../assets/images/sabores/11.png'),
   },
   {
     id: 12,
     nome: 'Brigadeiro de Paçoca',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/12.png'),
+    imagem: require('../../assets/images/sabores/12.png'),
   },
   {
     id: 13,
     nome: 'Brigadeiro de Prestígio',
     preco: 3.5,
     descricao: '',
-    imagem: require ('../../assets/images/sabores/13.png'),
+    imagem: require('../../assets/images/sabores/13.png'),
   },
- 
 ];
-
-
 
 export default function Cardapio() {
   const { carrinho, adicionarAoCarrinho } = useContext(CarrinhoContext);
+  const router = useRouter();
 
   const handleAdicionar = (produto: Produto) => {
     adicionarAoCarrinho(produto);
@@ -138,11 +136,13 @@ export default function Cardapio() {
         data={brigadeiros}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 50 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
       />
-      <View style={styles.carrinhoContainer}>
-        <Text style={styles.carrinhoTexto}>Itens no carrinho: {totalItensNoCarrinho}</Text>
-      </View>
+      {totalItensNoCarrinho > 0 && (
+        <TouchableOpacity style={styles.carrinhoContainer} onPress={() => router.push('/user/carrinho')}>
+          <Text style={styles.carrinhoTexto}>🛒 Ver Carrinho ({totalItensNoCarrinho})</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -158,14 +158,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 2,
   },
-  imagem: { 
+  imagem: {
     width: 100,
-    height: 100, 
+    height: 100,
     borderRadius: 15,
     marginLeft: 20,
     marginRight: 20,
     marginBottom: 20,
-    marginTop: 20
+    marginTop: 20,
   },
   info: { flex: 1, padding: 10, justifyContent: 'space-between' },
   nome: { fontSize: 18, fontWeight: 'bold' },
@@ -180,12 +180,12 @@ const styles = StyleSheet.create({
   botaoTexto: { color: '#fff', fontWeight: 'bold' },
   carrinhoContainer: {
     position: 'absolute',
-    bottom: 10,
+    bottom: 20,
     right: 20,
     backgroundColor: '#ff375b',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 30,
     elevation: 5,
   },
   carrinhoTexto: { color: '#fff', fontWeight: 'bold' },
